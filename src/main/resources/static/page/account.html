@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>account</title>
+</head>
+<body >
+<div id="accountDiv">
+    <div>
+        {{message}}
+    </div>
+    <br />
+    <from id="accountForm">
+        <input v-model="account.name" placeholder="input the name"/>
+        <br />
+        <input v-model="account.money" placeholder="input the money"/>
+        <button v-on:click="addAccount">
+            add a account
+        </button>
+    </from>
+
+    <br />
+
+    <div style="margin:10px;">
+        <button v-on:click="showList">
+            {{listContent}}
+        </button>
+        <br />
+        <table v-if="accountList.length > 0"  v-for="item in accountList">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>money</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>{{item.name}}</td>
+                <td>{{item.money}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin:10px;" name = "searchDiv">
+         <input v-model="searchName" type="text" v-on:change="searchAccount"/>
+         <table v-if="accountSearchList.length > 0"  v-for="item in accountSearchList">
+            <thead>
+            <tr>
+                <th>name</th>
+                <th>money</th>
+            </tr>
+            </thead>
+            <tr>
+                <td>{{item.name}}</td>
+                <td>{{item.money}}</td>
+            </tr>
+         </table>
+    </div>
+
+</div>
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script src="../js/vue.min.js"></script>
+<script src="../js/router.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/fastclick.min.js"></script>
+<script src="../js/app.js"></script>
+<script src="../modules/account.js"></script>
+
+</html>

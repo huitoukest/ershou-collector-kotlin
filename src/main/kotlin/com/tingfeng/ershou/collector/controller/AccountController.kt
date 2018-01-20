@@ -1,7 +1,7 @@
 package com.tingfeng.ershou.collector.controller
 
 import org.springframework.stereotype.Controller
-import com.tingfeng.ershou.collector.Entity.Account
+import com.tingfeng.ershou.collector.entity.Account
 import com.tingfeng.ershou.collector.dao.AccountDao
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*

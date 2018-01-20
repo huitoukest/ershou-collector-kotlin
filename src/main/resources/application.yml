@@ -1,13 +1,13 @@
 spring:
  # 环境 dev|test|pro
  profiles:
-   active: dev
+   active: pro
  datasource:
    type: com.alibaba.druid.pool.DruidDataSource
    driver-class-name: com.mysql.jdbc.Driver
-   url: jdbc:mysql://127.0.0.1:3306/ershou
+   url: jdbc:mysql://127.0.0.1:3306/ershou?useUnicode=true&amp;characterEncoding=UTF-8
    username: root
-   password: root
+   password:
  http:
    multipart:
    max-file-size: 100MB
@@ -54,6 +54,10 @@ server:
       uri-encoding: UTF-8
       max-threads: 1000
       min-spare-threads: 30
+logging:
+  level:
+    root: INFO
+    org.apache.http: INFO
 girl:
   cupSize: B
   age: 18

@@ -1,6 +1,6 @@
 package com.tingfeng.ershou.collector.dao
 
-import com.tingfeng.ershou.collector.Entity.Account
+import com.tingfeng.ershou.collector.entity.Account
 import org.springframework.stereotype.Repository
 
 @Repository

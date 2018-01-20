@@ -18,6 +18,6 @@ fun main(args: Array<String>){
 @EntityScan(basePackages = arrayOf("com.tingfeng.ershou.collector.entity"))//entity对应的包路径
 @SpringBootApplication
 @EnableTransactionManagement
-class AppMain {
+open class AppMain {
 
 }

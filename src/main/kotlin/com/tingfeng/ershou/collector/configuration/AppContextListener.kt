@@ -17,7 +17,7 @@ class AppContextListener : ApplicationListener<ContextRefreshedEvent> {
 
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
         applicationContext = event.applicationContext
-        collectorService = (applicationContext?.getBean("CollectorService")) as CollectorService
+        //collectorService = (applicationContext?.getBean("CollectorService")) as CollectorService
 
     }
 

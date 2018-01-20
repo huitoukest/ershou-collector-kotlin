@@ -1,4 +1,4 @@
-package com.tingfeng.ershou.collector.Entity
+package com.tingfeng.ershou.collector.entity
 
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue

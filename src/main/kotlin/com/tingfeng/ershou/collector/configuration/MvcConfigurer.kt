@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 
 @Configuration
-class MvcConfigurer : WebMvcConfigurerAdapter() {
+open class MvcConfigurer : WebMvcConfigurerAdapter() {
 
    /* override fun addViewControllers(registry: ViewControllerRegistry) {
         //registry.addViewController("/").setViewName("/web-inf/page/index.html")

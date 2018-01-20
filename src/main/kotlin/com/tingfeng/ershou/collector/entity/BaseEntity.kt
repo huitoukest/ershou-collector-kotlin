@@ -1,4 +1,4 @@
-package com.tingfeng.ershou.collector.Entity
+package com.tingfeng.ershou.collector.entity
 
 open class BaseEntity : java.io.Serializable {
     companion object {

@@ -35,18 +35,3 @@ INSERT INTO `account` VALUES ('3', '1', 'a');
 INSERT INTO `account` VALUES ('4', '1', 'a');
 INSERT INTO `account` VALUES ('5', '2', 'bb');
 INSERT INTO `account` VALUES ('6', '12', '123456');
-
--- ----------------------------
--- Table structure for girl
--- ----------------------------
-DROP TABLE IF EXISTS `girl`;
-CREATE TABLE `girl` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `age` bigint(20) NOT NULL,
-  `cup_size` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Records of girl
--- ----------------------------

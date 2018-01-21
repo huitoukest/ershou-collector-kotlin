@@ -152,8 +152,9 @@ class SeleniumTest {
                 item.price = -2;
             }else{
                 try {
-                    item.price = -3
+                    item.price = price.toInt()
                 }catch (e:Exception){
+                    item.price = -3
                     e.printStackTrace()
                 }
             }

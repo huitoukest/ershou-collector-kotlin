@@ -44,8 +44,6 @@ class DbSaveTest {
         my_dr.get(indexUrl)
 
         var xpathAllCity = "//div[@class='content-cities']/a";
-        xpathAllCity = "//div[@class='content-cities']/a[1]";
-
         //Thread.sleep(2000)//等待数据加载
         my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
         //获取省会
@@ -59,10 +57,9 @@ class DbSaveTest {
     fun getHotCitys():List<Pair<String,String>>{
         val indexUrl = "http://www.58.com/changecity.html";
         var my_dr =  getChromeDriver()// 打开chrome浏览器
-
-        var xpathAllCity = "//div[@class='content-cities']/a";
-        xpathAllCity = "//div[@id='hot']/a[@class='hot-city']";
-
+		my_dr.get(indexUrl)
+		
+        var xpathAllCity = "//div[@id='hot']/a[@class='hot-city']";
         my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
         //获取热门城市
         val elements = my_dr.findElements(By.xpath(xpathAllCity))
@@ -72,12 +69,13 @@ class DbSaveTest {
         return content
     }
 
-    fun testSaveToDb(citys:List<Pair<String,String>>){
+    fun testSaveToDb(citys:List<Pair<String,String>>,isHot:Boolean = false){
         citys.forEach{
           val city = City(it.first,it.second,0)
-            var count = cityDao!!.findById(it.first)
+			var count = cityDao!!.findById(it.first)
             if(null == count){
-                cityDao!!.save(city)
+                if(isHot) city.sortValue = 1
+				cityDao!!.save(city)
             }else{
                 println("${it.second} 已经存在了！")
             }
@@ -89,9 +87,9 @@ class DbSaveTest {
     fun testSaveToDb(){
         var citys = getCitys()
         testSaveToDb(citys)
-
+    	
         citys = getHotCitys()
-        testSaveToDb(citys)
+		testSaveToDb(citys,true)
     }
 
     @Test
@@ -99,8 +97,8 @@ class DbSaveTest {
         val startTime = System.currentTimeMillis()
         val items = SeleniumTest().getSimpleItemData()
         items.forEach{
-            var count = simpleItemDao!!.findTitleById(it.id!!)
-            if(null == count){
+            var count = simpleItemDao!!.countById(it.id!!)
+            if(null == count || count < 1){
                 simpleItemDao!!.save(it)
             }else{
                 println("${it.id} 已经存在了！")

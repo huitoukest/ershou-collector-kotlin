@@ -1,5 +1,6 @@
 package com.tingfeng.ershou.collector.main
 
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -8,8 +9,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.junit4.SpringRunner
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+
 
 
 @RunWith(SpringRunner::class)
@@ -26,9 +26,9 @@ class KotlinDemoApplicationTests {
                 // ...
                 .getForEntity("/hello", String::class.java)
 
-        assertNotNull<ResponseEntity<String>>(result,"fail!")
-        assertEquals( HttpStatus.OK,result?.statusCode)
-        assertEquals("Hello 01!",result?.body)
+        Assert.assertNotNull("fail!",result)
+        Assert.assertEquals( HttpStatus.OK,result?.statusCode)
+        Assert.assertEquals("Hello 01!",result?.body)
     }
 
     @Test
@@ -36,8 +36,8 @@ class KotlinDemoApplicationTests {
         var result = testRestTemplate
                 // ...
                 .getForEntity("/hello-service", String::class.java)
-        assertNotNull(result)
-        assertEquals(HttpStatus.OK,result?.statusCode)
-        assertEquals("hello service",result?.body)
+        Assert.assertNotNull(result)
+        Assert.assertEquals(HttpStatus.OK,result?.statusCode)
+        Assert.assertEquals("hello service",result?.body)
     }
 }

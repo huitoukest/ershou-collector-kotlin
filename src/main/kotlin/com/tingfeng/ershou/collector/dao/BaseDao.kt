@@ -7,4 +7,4 @@ import org.springframework.data.repository.NoRepositoryBean
 
 @NoRepositoryBean
 interface BaseDao<T : BaseEntity, ID : java.io.Serializable>
-    : JpaRepository<T, ID>, JpaSpecificationExecutor<T>
+      : JpaRepository<T, ID>, JpaSpecificationExecutor<T>

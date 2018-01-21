@@ -26,15 +26,16 @@ class SimpleItem :BaseEntity{
     var saler:String? = null
     @Column(length = 100)
     var source :String? = null
+	@Column(length = 255)
     var canCheck:Int? = 0
     @Column(length = 255)
     var url:String? = null
     var createTime:Date = Date()
 
+    var cityId:String? = null
+
     constructor() {}
     
-
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

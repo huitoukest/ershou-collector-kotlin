@@ -2,18 +2,146 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href='http://c.58cdn.com.cn/ui7/css/base_v20170730145406.css' media="all">
+    <link rel="stylesheet" type="text/css" href='http://c.58cdn.com.cn/ui7/ershou/listzz_v20171102202249.css' media="all">
     <title>Title</title>
 </head>
 <body id="indexBody">
-    <div id="indexDiv">
-        {{message}}
-        <span v-bind:title="message">
-            鼠标悬停几秒钟查看此处动态绑定的提示信息！
-        </span>
-        <button v-on:click="goToAccount">
-            进入account
-        </button>
+<div id="main">
+    <div class="mainleft" id="infolist">
+        <div class="infocon">
+            <table class="tbimg" cellspacing="0" cellpadding="0">
+                <colgroup>
+                    <col class="w130"></col>
+                    <col class="w550"></col>
+                    <col class="w100"></col>
+                    <col class="w100"></col>
+                    <col class="w100"></col>
+                </colgroup>
+                <tbody>
+                <tr v-for="item in simpleItems" class="zzinfo ">
+                    <td class="img">
+                        <a onClick="clickLog('from=zzpc_infoclick');" :href="item.url" target="_blank">
+                            <img onClick="clickLog('from=zzpc_infoclick');" lazy_src="http://pic4.58cdn.com.cn/zhuanzh/n_v2980d33b00b314896a850d2205219cc4f_130_130.jpg"
+                                 :src="item.icon" :alt="item.title">
+                        </a>
+                    </td>
+                    <td class="t">
+                        <a onClick="clickLog('from=zzpc_infoclick');" :href="item.url" target="_blank" class="t">{{item.title}}</a>
+                        <i class="clear"></i>
+                        <span class="pricebiao">￥<span class="price">{{item.price}}</span></span>
+                        <i class="clear"></i>
+
+                        <div class="quot"></div>	<span class="desc">{{item.content}}</span>
+
+                        <i class="clear"></i>
+                        <span class="fl">
+                                        {{item.city}}
+                        </span>
+                        <i class="clear"></i>
+                    </td>
+                    <td></td>
+                    <td class="tc">
+                        <div class="qq_attest">
+                            <p class="img_attest">
+                                <img lazy_src="http://img.58cdn.com.cn/zhuanzhuan/defaulth-head-image-bear@3x.png" alt="">
+                            </p>
+                            <p class="name_add">{{item.saler}}</p>
+                            <p class="name_add">来自<span class="zz"> {{item.source}} </span></p>
+                            <p v:show="item.canCheck == 1" class="zhijian"></p>
+                        </div>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <strong><span>1</span></strong><a href="/shouji/0/pn2/"><span>2</span></a><a href="/shouji/0/pn3/"><span>3</span></a><a href="/shouji/0/pn4/"><span>4</span></a><a href="/shouji/0/pn5/"><span>5</span></a><a href="/shouji/0/pn6/"><span>6</span></a><a href="/shouji/0/pn7/"><span>7</span></a><a href="/shouji/0/pn8/"><span>8</span></a><a href="/shouji/0/pn9/"><span>9</span></a><a href="/shouji/0/pn10/"><span>10</span></a><a href="/shouji/0/pn11/"><span>11</span></a><a href="/shouji/0/pn12/"><span>12</span></a><a class="next" href="/shouji/0/pn2/"><span>下一页</span></a>
+        </div>
+        <div id="infocont" class="infocont">
+            共 <span style="color: red"><b>37499</b></span> 条信息，
+        </div>
     </div>
+
+    <div class="mainright" style="padding:10px;background-color:#fff;margin-left:10px;">
+        <table>
+            <tr>
+                <td width="50">
+                    搜索：
+                </td>
+                <td><input type="text" style="width:100px;" /></td>
+
+            </tr>
+            <tr>
+                <td width="50">
+                    城市：
+                </td>
+                <td><select type="text" style="width:100px;" >
+                    <option value="1">北京</option>
+                </select></td>
+
+            </tr>
+            <tr>
+                <td width="50">
+                    价格范围：
+                </td>
+                <td>
+                    <input type="number" style="width:100px;"/><br />
+                    -<br />
+                    <input type="number" style="width:100px;"/>
+
+                </td>
+
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="button" value="搜索"/>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+    <div class="clear"></div>
+</div>
+<div class="zhuanpan">
+    <div class="zp">
+        <div class="zp_container">
+            <img src="http://img.58cdn.com.cn/ui7/ershou/zzlist/zp_container.png" class="img_container" />
+            <div class="zp_content">
+                <ul class="zp_sector">
+                    <li class="hold hold0">
+                        <span class="pie pie0"></span>
+                    </li>
+                    <li class="hold hold1">
+                        <span class="pie pie1"></span>
+                    </li>
+                    <li class="hold hold2">
+                        <span class="pie pie2"></span>
+                    </li>
+                    <li class="hold hold3">
+                        <span class="pie pie3"></span>
+                    </li>
+                    <li class="hold hold4">
+                        <span class="pie pie4"></span>
+                    </li>
+                    <li class="hold hold5">
+                        <span class="pie pie5"></span>
+                    </li>
+                </ul>
+                <img src="http://img.58cdn.com.cn/ui7/ershou/zzlist/zp_content.png" class="container" />
+                <img src="http://img.58cdn.com.cn/ui7/ershou/zzlist/start.png" class="start" />
+            </div>
+        </div>
+        <div class="zp_close"></div>
+    </div>
+</div>
+
+<div id="direct_ad_bottom"></div>
+
+
 </body>
 
 <script src="../js/jquery.min.js"></script>

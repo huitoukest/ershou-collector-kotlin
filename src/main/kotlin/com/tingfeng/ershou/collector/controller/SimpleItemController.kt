@@ -7,9 +7,11 @@ import com.tingfeng.ershou.collector.entity.SimpleItem
 import com.tingfeng.ershou.collector.service.SimpleItemService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
+import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+@Controller
 @RestController
 class SimpleItemController() {
     @Autowired

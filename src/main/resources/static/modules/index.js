@@ -5,21 +5,21 @@ var app = new Vue({
     simpleItem:{
         tile:'',
         canCheck:'',
-        keyWords:'',
-        city:Id,
-        currentPage:0,
-        currentPageSize:30,
+        keyWordsString:'',
+        cityId:'',
+        currentPage:1,
+        pageSize:30,
     },
     citys:[{name:'全部',id:''}],
     collector:{
         title:'',
-        threadSize：5,
+        threadSize:5,
         minPrice:1,
         maxPrice:15000,
         hot:1
     },
-    simpleItems:[]
-
+    simpleItems:[],
+    pageInfo:{'pageSize':'30',currentPage:1,totalRow:0,totalPage:0}
   },
   methods:{
     goToAccount: function() {
@@ -27,7 +27,7 @@ var app = new Vue({
     },
     getCitys:function(){
         $.ajax({
-          type:'post',
+          type:'get',
           dataType:'json',
           url:"/ershou/getCitys",
           data:{},
@@ -38,15 +38,26 @@ var app = new Vue({
       });
       return  app.citys
     },
-    searchContent: function(){
+    searchContent: function(pageNo){
+        if(typeof pageNo !='undefined' && null != pageNo){
+            app.simpleItem.currentPage = pageNo;
+        }
+        if(app.simpleItem.currentPage < 1){
+            app.simpleItem.currentPage = 1
+        }
         $.ajax({
-              type:'post',
+              type:'get',
               dataType:'json',
               url:"/ershou/getItems",
-              data:simpleItem,
+              data:app.simpleItem,
               success:function(json){
-                  debugger;
-                  app.simpleItems = dataList;
+                  app.simpleItems = [];
+                  app.pageInfo = json;
+                  app.pageInfo.totalPage = app.pageInfo.totalRow / app.pageInfo.pageSize + ( app.pageInfo.totalRow % app.pageInfo.pageSize > 0 ? 1 : 0 )
+                  app.simpleItems = json.dataList;
+                  /*for(var i = 0;i<json.dataList.length;i++){
+                    app.simpleItems.push(json.dataList[i]);
+                  }*/
               }
           });
     }

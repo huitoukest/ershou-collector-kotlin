@@ -1,6 +1,5 @@
 package com.tingfeng.ershou.collector
 
-import com.fasterxml.jackson.databind.util.JSONPObject
 import com.google.gson.Gson
 import org.junit.Test
 import org.openqa.selenium.By
@@ -9,7 +8,11 @@ import org.junit.Assert
 import org.openqa.selenium.chrome.ChromeDriver
 import java.io.File
 import java.util.concurrent.TimeUnit
-import javax.persistence.Tuple
+import org.openqa.selenium.WebDriver
+import org.openqa.selenium.chrome.ChromeOptions
+
+
+
 
 
 class SeleniumTest {
@@ -20,7 +23,14 @@ class SeleniumTest {
         //-----------------------------打开Chrome浏览器---------------------------------------------
         val file_chrome = File("E:/drivers/chromedriver.exe")
         System.setProperty("webdriver.chrome.driver", file_chrome.getAbsolutePath())
-        var my_dr =  ChromeDriver()// 打开chrome浏览器
+        val chromeOptions = ChromeOptions()
+//        设置为 headless 模式 （必须）
+        chromeOptions.addArguments("--headless")
+        chromeOptions.addArguments("--disable-gpu")
+//        设置浏览器窗口打开大小  （非必须）
+        chromeOptions.addArguments("--window-size=1920,1080")
+        val my_dr = ChromeDriver(chromeOptions)// 打开chrome浏览器
+        //var my_dr =  ChromeDriver()
         return my_dr
     }
 

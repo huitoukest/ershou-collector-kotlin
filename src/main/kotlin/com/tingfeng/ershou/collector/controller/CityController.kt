@@ -15,6 +15,6 @@ class CityController{
 
     @RequestMapping("/getCitys")
     fun getCitys(city:City):List<City>{
-        return cityDao.findAll()?:ArrayList<City>()
+        return cityDao.findAllByOrderBySortValueDesc()?:ArrayList<City>()
     }
 }

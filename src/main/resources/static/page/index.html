@@ -7,7 +7,7 @@
     <title>Title</title>
 </head>
 <body id="indexBody">
-<div id="main">
+<div id="indexDiv" style="padding-left:20px;">
     <div class="mainleft" id="infolist">
         <div class="infocon">
             <table class="tbimg" cellspacing="0" cellpadding="0">
@@ -57,29 +57,42 @@
             </table>
         </div>
         <div class="pager">
-            <strong><span>1</span></strong><a href="/shouji/0/pn2/"><span>2</span></a><a href="/shouji/0/pn3/"><span>3</span></a><a href="/shouji/0/pn4/"><span>4</span></a><a href="/shouji/0/pn5/"><span>5</span></a><a href="/shouji/0/pn6/"><span>6</span></a><a href="/shouji/0/pn7/"><span>7</span></a><a href="/shouji/0/pn8/"><span>8</span></a><a href="/shouji/0/pn9/"><span>9</span></a><a href="/shouji/0/pn10/"><span>10</span></a><a href="/shouji/0/pn11/"><span>11</span></a><a href="/shouji/0/pn12/"><span>12</span></a><a class="next" href="/shouji/0/pn2/"><span>下一页</span></a>
+            <a href="javascript:void(0)" @click="searchContent(pageInfo.currentPage - 1)">
+                <span>上一页</span>
+            </a>
+            <a href="javascript:void(0)">
+                <span>{{pageInfo.currentPage}}</span>
+            </a>
+            <a class="next"  href="javascript:void(0)" @click="searchContent(pageInfo.currentPage + 1)"><span>下一页</span></a>
         </div>
         <div id="infocont" class="infocont">
-            共 <span style="color: red"><b>37499</b></span> 条信息，
+            共 <span style="color: red"><b>{{pageInfo.totalRow}}</b></span> 条信息，{{pageInfo.totalPage}}页
         </div>
     </div>
 
     <div class="mainright" style="padding:10px;background-color:#fff;margin-left:10px;">
         <table>
             <tr>
+                <td colspan="2">
+                    <a href="/ershou/page/collector.html" target="_blank">去数据采集页面</a>
+                </td>
+            </tr>
+            <tr>
                 <td width="50">
                     搜索：
                 </td>
-                <td><input type="text" style="width:100px;" /></td>
+                <td><input v-model="simpleItem.title" type="text" style="width:100px;" /></td>
 
             </tr>
             <tr>
                 <td width="50">
                     城市：
                 </td>
-                <td><select type="text" style="width:100px;" >
-                    <option value="1">北京</option>
-                </select></td>
+                <td>
+                    <select v-model="simpleItem.cityId" readonly="readonly" style="width:100px;" >
+                        <option v-for="item in citys" :value="item.id">{{item.name}}</option>
+                    </select>
+                </td>
 
             </tr>
             <tr>
@@ -87,25 +100,20 @@
                     价格范围：
                 </td>
                 <td>
-                    <input type="number" style="width:100px;"/><br />
+                    <input v-model="simpleItem.mixPrice" type="number" style="width:100px;"/><br />
                     -<br />
-                    <input type="number" style="width:100px;"/>
-
+                    <input v-model="simpleItem.maxPrice" type="number" style="width:100px;"/>
                 </td>
-
             </tr>
             <tr>
                 <td></td>
                 <td>
-                    <input type="button" value="搜索"/>
+                    <button @click="searchContent">搜索</button>
                 </td>
             </tr>
         </table>
-
-
     </div>
     <div class="clear"></div>
-</div>
 <div class="zhuanpan">
     <div class="zp">
         <div class="zp_container">
@@ -141,7 +149,7 @@
 
 <div id="direct_ad_bottom"></div>
 
-
+</div>
 </body>
 
 <script src="../js/jquery.min.js"></script>

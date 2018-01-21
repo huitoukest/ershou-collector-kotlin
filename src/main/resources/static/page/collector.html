@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<title>collector</title>
+</head>
+<body>
+    <div id="main" style="padding-left:20px;">
+        <div class="mainright" style="padding:20px;background-color:#fff;margin-left:10px;text-align:center">
+            <table>
+
+                <tr>
+                    <td >
+                        当前采集状态：
+                    </td>
+                    <td>
+                        <select disabled title="" v-model="status" readonly="readonly" style="width:150px;" >
+                            <option v-for="item in statusArray" :value="item.value">{{item.name}}</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td >
+                        采集标题：
+                    </td>
+                    <td><input v-model="collector.title" type="text" style="width:100px;" /></td>
+                </tr>
+
+                <tr>
+                    <td >
+                        采集数据库线程数（1-15）：
+                    </td>
+                    <td>
+                        <select title="" v-model="collector.threadSize" readonly="readonly" style="width:100px;" >
+                            <option v-for="item in threadSizes" :value="item">{{item}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td >
+                        是否热门城市：
+                    </td>
+                    <td>
+                        <select v-model="collector.hot" readonly="readonly" style="width:100px;" >
+                            <option v-for="item in citys" :value="item.value">{{item.name}}</option>
+                        </select>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td >
+                        采集的价格范围：
+                    </td>
+                    <td>
+                        <input v-model="collector.minPrice" type="number" style="width:100px;"/><br />
+                        -<br />
+                        <input v-model="collector.maxPrice" type="number" style="width:100px;"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button @click="startCollect">开始采集</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button @click="stopCollect">停止采集</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        注意：停止采集后后系统并不会立即停止数据处理，在已经采集到的数据处理完成之后才会真正的停止，
+                        所以，停止后若想再次采集，请稍等2分钟。。。
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+
+<script src="../js/jquery.min.js"></script>
+<script src="../js/vue.min.js"></script>
+<script src="../js/router.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/fastclick.min.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script src="../modules/collector.js"></script>
+
+</html>

@@ -8,21 +8,34 @@ import com.tingfeng.ershou.collector.entity.SimpleItem
 import com.tingfeng.ershou.collector.service.CollectorService
 import org.openqa.selenium.By
 import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.chrome.ChromeOptions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class CollectorServiceImpl : CollectorService {
 
-    companion object {
+     companion object {
         var isPause  = false
         var isStop = false
         var isRun = false
         var isCityUpdated = false
-        var threadPool = Executors.newFixedThreadPool(20)
+        var threadPool = Executors.newFixedThreadPool(15)
+        val runingCount = AtomicInteger (0)
+         var status = Thread{
+            while (true) {
+                if (threadPool.isShutdown || threadPool.isTerminated || runingCount.get() <= 0) {
+                    isStop = true
+                    isRun = false
+                    isPause = false
+                }
+                Thread.sleep(2000)
+            }
+         }.start()
     }
 
     @Autowired
@@ -30,6 +43,22 @@ class CollectorServiceImpl : CollectorService {
     @Autowired
     lateinit var simpleItemDao: SimpleItemDao
 
+    override @Synchronized fun getStatus(): Int {
+        var status = 0;
+        if(threadPool.isShutdown || runingCount.get() <= 0){
+            return 0
+        }
+        if(isStop && !threadPool.isShutdown){
+            return 3
+        }
+        if(isPause){
+            return 2
+        }
+        if(isRun){
+            return 1
+        }
+        return status
+    }
 
     override @Synchronized  fun pause() {
         if(!isPause) {
@@ -40,7 +69,7 @@ class CollectorServiceImpl : CollectorService {
     override @Synchronized  fun stop() {
        if(!isStop) {
            isStop = true
-
+           isRun = false;
            threadPool.shutdown()
        }
     }
@@ -52,43 +81,66 @@ class CollectorServiceImpl : CollectorService {
         //-----------------------------打开Chrome浏览器---------------------------------------------
         val file_chrome = File("E:/drivers/chromedriver.exe")
         System.setProperty("webdriver.chrome.driver", file_chrome.getAbsolutePath())
-        var my_dr =  ChromeDriver()// 打开chrome浏览器
+        val chromeOptions = ChromeOptions()
+//        设置为 headless 模式 （必须）
+        chromeOptions.addArguments("--headless")
+        chromeOptions.addArguments("--disable-gpu")
+//        设置浏览器窗口打开大小  （非必须）
+        chromeOptions.addArguments("--window-size=1920,1080")
+        val my_dr = ChromeDriver(chromeOptions)// 打开chrome浏览器
         return my_dr
     }
 
     fun getCitys():List<Pair<String,String>>{
-        val indexUrl = "http://www.58.com/changecity.html";
-        var my_dr =  getChromeDriver()// 打开chrome浏览器
+        runingCount.incrementAndGet()
+        try {
+            val indexUrl = "http://www.58.com/changecity.html";
+            var my_dr =  getChromeDriver()// 打开chrome浏览器
 
-        my_dr.get(indexUrl)
+            my_dr.get(indexUrl)
 
-        var xpathAllCity = "//div[@class='content-cities']/a";
-        //Thread.sleep(2000)//等待数据加载
-        my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
-        //获取省会
-        val elements = my_dr.findElements(By.xpath(xpathAllCity))
-        val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
+            var xpathAllCity = "//div[@class='content-cities']/a";
+            //Thread.sleep(2000)//等待数据加载
+            my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
+            //获取省会
+            val elements = my_dr.findElements(By.xpath(xpathAllCity))
+            val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
 
-        my_dr.quit()
-        return content
+            my_dr.quit()
+            return content
+        }catch (e:Exception){
+            throw e
+        }finally {
+            runingCount.decrementAndGet()
+        }
     }
 
     fun getHotCitys():List<Pair<String,String>>{
-        val indexUrl = "http://www.58.com/changecity.html";
-        var my_dr =  getChromeDriver()// 打开chrome浏览器
-        my_dr.get(indexUrl)
+        runingCount.incrementAndGet()
+        try {
+            val indexUrl = "http://www.58.com/changecity.html";
+            var my_dr =  getChromeDriver()// 打开chrome浏览器
+            my_dr.get(indexUrl)
 
-        var xpathAllCity = "//div[@id='hot']/a[@class='hot-city']";
-        my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
-        //获取热门城市
-        val elements = my_dr.findElements(By.xpath(xpathAllCity))
-        val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
+            var xpathAllCity = "//div[@id='hot']/a[@class='hot-city']";
+            my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
+            //获取热门城市
+            val elements = my_dr.findElements(By.xpath(xpathAllCity))
+            val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
 
-        my_dr.quit()
-        return content
+            my_dr.quit()
+            return content
+
+        }catch (e:Exception){
+            throw  e
+        }finally {
+            runingCount.decrementAndGet()
+        }
+
+
     }
 
-    fun testSaveToDb(citys:List<Pair<String,String>>,isHot:Boolean = false){
+   fun saveToDb(citys:List<Pair<String,String>>,isHot:Boolean = false){
         citys.forEach{
             val city = City(it.first,it.second,0)
             var count = cityDao!!.findById(it.first)
@@ -103,84 +155,93 @@ class CollectorServiceImpl : CollectorService {
 
 
     fun getSimpleItemData(maxWait:Long = 15,url:String):List<SimpleItem>{
-        var content = StringBuffer(5000)
-        var my_dr =  getChromeDriver()// 打开chrome浏览器
-        my_dr.get(url)
-        my_dr.manage().timeouts().implicitlyWait(maxWait, TimeUnit.SECONDS) //显式等待数据加载
-        //得到当前页面的item信息
-        var xpathAllCity = "//div[@class='infocon']/table[@class='tbimg']//tr";//获取所有的item行
-        val elements = my_dr.findElements(By.xpath(xpathAllCity))
-        val items = elements.map {
-            try{
-                val item = SimpleItem()
-                item.icon = it.findElement(By.xpath("./td[@class='img']/a/img"))?.getAttribute("src")
-                val show = it.findElement(By.xpath("./td[@class='t']"))
+        runingCount.incrementAndGet()
+        try {
+            var content = StringBuffer(5000)
+            var my_dr =  getChromeDriver()// 打开chrome浏览器
+            my_dr.get(url)
+            my_dr.manage().timeouts().implicitlyWait(maxWait, TimeUnit.SECONDS) //显式等待数据加载
+            //得到当前页面的item信息
+            var xpathAllCity = "//div[@class='infocon']/table[@class='tbimg']//tr";//获取所有的item行
+            val elements = my_dr.findElements(By.xpath(xpathAllCity))
+            val items = elements.map {
+                try{
+                    val item = SimpleItem()
+                    item.icon = it.findElement(By.xpath("./td[@class='img']/a/img"))?.getAttribute("src")
+                    val show = it.findElement(By.xpath("./td[@class='t']"))
 
-                item.url = show.findElement(By.xpath("./a[@class='t']"))?.getAttribute("href")
-                item.title = show.findElement(By.xpath("./a[@class='t']"))?.text
+                    item.url = show.findElement(By.xpath("./a[@class='t']"))?.getAttribute("href")
+                    item.title = show.findElement(By.xpath("./a[@class='t']"))?.text
 
-                val price = show.findElement(By.xpath("./span[@class='pricebiao']/span[@class='price']"))?.text
+                    val price = show.findElement(By.xpath("./span[@class='pricebiao']/span[@class='price']"))?.text
 
-                if(price == null)
-                {
-                    item.price = -1
-                }else if(price == "面议"){
-                    item.price = -2;
-                }else{
+                    if(price == null)
+                    {
+                        item.price = -1
+                    }else if(price == "面议"){
+                        item.price = -2;
+                    }else{
+                        try {
+                            item.price = price.toInt()
+                        }catch (e:Exception){
+                            item.price = -3
+                            e.printStackTrace()
+                        }
+                    }
+                    item.content = show.findElement(By.xpath("./span[@class='desc']"))?.text
                     try {
-                        item.price = price.toInt()
+                        item.city = show.findElement(By.xpath("./span[@class='fl']"))?.text
                     }catch (e:Exception){
-                        item.price = -3
                         e.printStackTrace()
                     }
-                }
-                item.content = show.findElement(By.xpath("./span[@class='desc']"))?.text
-                try {
-                    item.city = show.findElement(By.xpath("./span[@class='fl']"))?.text
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                val tc = it.findElement(By.xpath("./td[@class='tc']"))
-                val sellerInfo = tc.findElements(By.xpath(".//p[@class='name_add']"))
-                try {
-                    if(sellerInfo.size > 0){
-                        item.saler = sellerInfo.get(0).text
+                    val tc = it.findElement(By.xpath("./td[@class='tc']"))
+                    val sellerInfo = tc.findElements(By.xpath(".//p[@class='name_add']"))
+                    try {
+                        if(sellerInfo.size > 0){
+                            item.saler = sellerInfo.get(0).text
+                        }
+                    }catch (e:Exception){
+                        e.printStackTrace()
                     }
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                try {
-                    if(sellerInfo.size > 1){
-                        item.source = sellerInfo.get(1).text
-                    }
+                    try {
+                        if(sellerInfo.size > 1){
+                            item.source = sellerInfo.get(1).text
+                        }
 
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                try {
-                    val check = tc.findElements(By.xpath(".//p[@class='zhijian']"))
-                    if(check.size > 0){
-                        item.canCheck  = 1
-                    }else{
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                    }
+                    try {
+                        val check = tc.findElements(By.xpath(".//p[@class='zhijian']"))
+                        if(check.size > 0){
+                            item.canCheck  = 1
+                        }else{
+                            item.canCheck = 0
+                        }
+                    }catch (e:Exception){
                         item.canCheck = 0
                     }
+
+                    if(null != item.url)
+                        item.id = item.getUUID()
+
+                    content.append("\n")
+                    content.append(Gson().toJson(item))
+                    item
                 }catch (e:Exception){
-                    item.canCheck = 0
+                    SimpleItem()
                 }
+            }.filter{ it.id != null }
+            my_dr.quit()
+            println(content)
+            return items
+        }catch (e:Exception){
+            throw e
+        }finally {
+            runingCount.decrementAndGet()
+        }
 
-                if(null != item.url)
-                    item.id = item.getUUID()
-
-                content.append("\n")
-                content.append(Gson().toJson(item))
-                item
-            }catch (e:Exception){
-                SimpleItem()
-            }
-        }.filter{ it.id != null }
-        my_dr.quit()
-        println(content)
-        return items
+        
     }
 
     override @Synchronized fun start(title: String, minPrice: Int, maxPrice: Int,threadSize:Int,hot:Int):Boolean {
@@ -189,8 +250,11 @@ class CollectorServiceImpl : CollectorService {
             if(threadSize < 1) size = 1
             if(threadSize > 15) size = 15
 
-            if(!isRun){
+            if(!isRun && runingCount.get() <= 0){
                 isRun = true
+                isPause = false
+                isStop = false
+
                 if(!isCityUpdated){
                     threadPool.submit(getCityCollectorThread())
                     isCityUpdated = true
@@ -217,6 +281,7 @@ class CollectorServiceImpl : CollectorService {
             isPause = false
             isStop = false
         }catch (e:Exception){
+            runingCount.set(0)
             return false
         }
         return true
@@ -229,29 +294,47 @@ class CollectorServiceImpl : CollectorService {
     fun getItemCollectorThread(maxWait: Long,city: City,title: String, minPrice: Int, maxPrice: Int):Thread{
         val url = getSearchUrl(city.id!!,0,title,title,minPrice,maxPrice)
         return Thread{
-            val startTime = System.currentTimeMillis()
-            val items = getSimpleItemData(maxWait,url)
-            var count = 0
-            items.forEach{
-                var count = simpleItemDao!!.countById(it.id!!)
-                if(null == count || count < 1){
-                    it.cityId = city.id
-                    simpleItemDao!!.save(it)
-                    count = count  + 1
+            runingCount.incrementAndGet()
+            try {
+                val startTime = System.currentTimeMillis()
+                val items = getSimpleItemData(maxWait,url)
+                var count = 0
+                items.forEach{
+                    var count = simpleItemDao!!.countById(it.id!!)
+                    if(null == count || count < 1){
+                        it.cityId = city.id
+                        simpleItemDao!!.save(it)
+                        count = count  + 1
+                    }
                 }
+                val useTime =  ( System.currentTimeMillis() - startTime ) / 100 / 10.0
+                println("\nin city:$city,save data:$count,useTime:$useTime\n")
+            }catch (e:Exception)
+            {
+                throw  e
+                
+            }finally {
+                runingCount.decrementAndGet()
             }
-            val useTime =  ( System.currentTimeMillis() - startTime ) / 100 / 10.0
-            println("\nin city:$city,save data:$count,useTime:$useTime\n")
+
+
         }
     }
 
     fun getCityCollectorThread():Thread{
         return Thread{
-            var citys = getCitys()
-            testSaveToDb(citys)
+            runingCount.incrementAndGet()
+            try {
+                var citys = getCitys()
+                saveToDb(citys)
 
-            citys = getHotCitys()
-            testSaveToDb(citys,true)
+                citys = getHotCitys()
+                saveToDb(citys,true)
+            }catch (e:Exception){
+                throw  e
+            }finally {
+                runingCount.decrementAndGet()
+            }
         }
     }
 

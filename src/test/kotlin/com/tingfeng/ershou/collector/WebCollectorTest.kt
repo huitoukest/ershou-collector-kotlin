@@ -19,7 +19,7 @@ class WebCollectorTest {
 
     @Test
     fun testStart(){
-       val result =  collectorController.start("华为MATE10",1800,15000,5,1)
+       val result =  collectorController.start("华为MATE10",1800,15000,5,0)
         System.`in`.read()//加入该代码，让主线程不挂掉
         println(result)
     }

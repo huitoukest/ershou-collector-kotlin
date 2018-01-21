@@ -9,4 +9,5 @@ interface CityDao :BaseDao<City, Long> {
     fun findByNameOrderBySortValue(name:String):List<City>
     fun findById(id:String):City
     fun findBySortValue(sortValue:Int):List<City>
+    fun findAllByOrderBySortValueDesc(): List<City>?
 }

@@ -27,14 +27,16 @@ class CollectorServiceImpl : CollectorService {
         var threadPool = Executors.newFixedThreadPool(15)
         val runingCount = AtomicInteger (0)
          var status = Thread{
-            while (true) {
-                if (threadPool.isShutdown || threadPool.isTerminated || runingCount.get() <= 0) {
-                    isStop = true
-                    isRun = false
-                    isPause = false
-                }
-                Thread.sleep(2000)
-            }
+                 while (true) {
+                     synchronized(CollectorServiceImpl.javaClass){
+                         if (threadPool.isShutdown || threadPool.isTerminated || runingCount.get() <= 0) {
+                             isStop = true
+                             isRun = false
+                             isPause = false
+                         }
+                         Thread.sleep(2000)
+                 }
+             }
          }.start()
     }
 
@@ -69,7 +71,8 @@ class CollectorServiceImpl : CollectorService {
     override @Synchronized  fun stop() {
        if(!isStop) {
            isStop = true
-           isRun = false;
+           isRun = false
+           isPause = false
            threadPool.shutdown()
        }
     }
@@ -92,10 +95,12 @@ class CollectorServiceImpl : CollectorService {
     }
 
     fun getCitys():List<Pair<String,String>>{
+        if (isStop) return ArrayList<Pair<String,String>>(0)
         runingCount.incrementAndGet()
+         var my_dr : ChromeDriver? = null
         try {
             val indexUrl = "http://www.58.com/changecity.html";
-            var my_dr =  getChromeDriver()// 打开chrome浏览器
+             my_dr =  getChromeDriver()// 打开chrome浏览器
 
             my_dr.get(indexUrl)
 
@@ -105,17 +110,19 @@ class CollectorServiceImpl : CollectorService {
             //获取省会
             val elements = my_dr.findElements(By.xpath(xpathAllCity))
             val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
-
-            my_dr.quit()
+            my_dr?.quit()
             return content
         }catch (e:Exception){
+            my_dr?.quit()
             throw e
         }finally {
             runingCount.decrementAndGet()
+
         }
     }
 
     fun getHotCitys():List<Pair<String,String>>{
+        if (isStop) return ArrayList<Pair<String,String>>(0)
         runingCount.incrementAndGet()
         try {
             val indexUrl = "http://www.58.com/changecity.html";
@@ -155,7 +162,8 @@ class CollectorServiceImpl : CollectorService {
 
 
     fun getSimpleItemData(maxWait:Long = 15,url:String):List<SimpleItem>{
-        runingCount.incrementAndGet()
+        if (isStop) return ArrayList<SimpleItem>(0)
+            runingCount.incrementAndGet()
         try {
             var content = StringBuffer(5000)
             var my_dr =  getChromeDriver()// 打开chrome浏览器
@@ -249,8 +257,8 @@ class CollectorServiceImpl : CollectorService {
             var size = 1
             if(threadSize < 1) size = 1
             if(threadSize > 15) size = 15
-
             if(!isRun && runingCount.get() <= 0){
+                threadPool = Executors.newFixedThreadPool(threadSize)
                 isRun = true
                 isPause = false
                 isStop = false
@@ -276,8 +284,9 @@ class CollectorServiceImpl : CollectorService {
                         }
                     }
                 }
+            }else{
+                return false
             }
-
             isPause = false
             isStop = false
         }catch (e:Exception){
@@ -298,17 +307,17 @@ class CollectorServiceImpl : CollectorService {
             try {
                 val startTime = System.currentTimeMillis()
                 val items = getSimpleItemData(maxWait,url)
-                var count = 0
+                var dataCount = 0
                 items.forEach{
                     var count = simpleItemDao!!.countById(it.id!!)
                     if(null == count || count < 1){
                         it.cityId = city.id
                         simpleItemDao!!.save(it)
-                        count = count  + 1
+                        dataCount = dataCount  + 1
                     }
                 }
                 val useTime =  ( System.currentTimeMillis() - startTime ) / 100 / 10.0
-                println("\nin city:$city,save data:$count,useTime:$useTime\n")
+                println("\nin city:$city,save data:$dataCount,useTime:$useTime\n")
             }catch (e:Exception)
             {
                 throw  e

@@ -21,7 +21,7 @@ class SimpleItemServiceImpl : SimpleItemService {
     @Autowired
     lateinit var simpleItemDao:SimpleItemDao
 
-    override fun findPagers(simpleItem: SimpleItem, pager: Pager<SimpleItem>,keyWords:List<String>?): Pager<SimpleItem> {
+    override fun findPagers(simpleItem: SimpleItem, pager: Pager<SimpleItem>,keyWords:List<String>?,minPrice:Int?,maxPrice:Int?): Pager<SimpleItem> {
         val specification = Specification<SimpleItem> { root, query, cb ->
             /**
              * 构造断言
@@ -41,6 +41,14 @@ class SimpleItemServiceImpl : SimpleItemService {
             }
             if (StringUtils.isNotBlank(simpleItem.title)) { //添加断言
                 val likeNickName = cb.like(root.get<Any>("title").`as`(String::class.java),"%" +  simpleItem.title + "%")
+                predicates.add(likeNickName)
+            }
+            if (null != minPrice) { //添加断言
+                val likeNickName = cb.greaterThanOrEqualTo(root.get<Int>("price"),minPrice)
+                predicates.add(likeNickName)
+            }
+            if (null != maxPrice) { //添加断言
+                val likeNickName = cb.lessThanOrEqualTo(root.get<Int>("price"),maxPrice)
                 predicates.add(likeNickName)
             }
             if(null != keyWords) {

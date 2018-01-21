@@ -24,7 +24,7 @@ class SimpleImteControllertTest {
         item.canCheck = null
         item.title = "米"
         val keyWords = "顶配,"
-        val result = simpleItemControllelr.searchItem(Pager(),item,keyWords)
+        val result = simpleItemControllelr.searchItem(Pager(),item,keyWords,null,null)
         println(Gson().toJson(result))
     }
 

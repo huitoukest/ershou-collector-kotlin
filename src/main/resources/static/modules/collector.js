@@ -5,7 +5,7 @@ var app = new Vue({
     threadSizes:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
     collector:{
         title:'',
-        threadSize:5,
+        threadSize:8,
         minPrice:1,
         maxPrice:15000,
         hot:1
@@ -23,6 +23,8 @@ var app = new Vue({
               success:function(json){
                  if(true == json){
                     alert("服务器已经开始采集信息...")
+                 }else{
+                    alert("服务器正在工作中，请等状态停止后再开始...")
                  }
               }
           });

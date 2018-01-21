@@ -9,6 +9,8 @@ var app = new Vue({
         cityId:'',
         currentPage:1,
         pageSize:30,
+        minPrice:1,
+        maxPrice:15000,
     },
     citys:[{name:'全部',id:''}],
     collector:{
@@ -45,6 +47,7 @@ var app = new Vue({
         if(app.simpleItem.currentPage < 1){
             app.simpleItem.currentPage = 1
         }
+
         $.ajax({
               type:'get',
               dataType:'json',

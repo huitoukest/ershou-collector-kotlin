@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link type="text/css" rel="stylesheet" href='http://c.58cdn.com.cn/ui7/css/base_v20170730145406.css' media="all">
     <link rel="stylesheet" type="text/css" href='http://c.58cdn.com.cn/ui7/ershou/listzz_v20171102202249.css' media="all">
-    <title>Title</title>
+    <title>index</title>
 </head>
 <body id="indexBody">
 <div id="indexDiv" style="padding-left:20px;">
@@ -100,7 +100,7 @@
                     价格范围：
                 </td>
                 <td>
-                    <input v-model="simpleItem.mixPrice" type="number" style="width:100px;"/><br />
+                    <input v-model="simpleItem.minPrice" type="number" style="width:100px;"/><br />
                     -<br />
                     <input v-model="simpleItem.maxPrice" type="number" style="width:100px;"/>
                 </td>
@@ -108,7 +108,7 @@
             <tr>
                 <td></td>
                 <td>
-                    <button @click="searchContent">搜索</button>
+                    <a href="javascript:void(0)" @click="searchContent()">搜索</a>
                 </td>
             </tr>
         </table>

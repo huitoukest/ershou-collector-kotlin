@@ -20,9 +20,9 @@ class SimpleItemController() {
     lateinit var simpleItemService: SimpleItemService
 
     @RequestMapping("/getItems")
-    fun searchItem(pager: Pager<SimpleItem>,simpleItem: SimpleItem,keyWordsString:String?): Pager<SimpleItem> {
+    fun searchItem(pager: Pager<SimpleItem>,simpleItem: SimpleItem,keyWordsString:String?,minPrice:Int?,maxPrice:Int?): Pager<SimpleItem> {
        val keyWords = keyWordsString?.split(",")
-       val pageInfo = this.simpleItemService.findPagers(simpleItem,pager,keyWords)
+       val pageInfo = this.simpleItemService.findPagers(simpleItem,pager,keyWords,minPrice,maxPrice)
         return  pageInfo!!;
     }
 

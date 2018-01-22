@@ -6,15 +6,18 @@ import com.tingfeng.ershou.collector.dao.SimpleItemDao
 import com.tingfeng.ershou.collector.entity.City
 import com.tingfeng.ershou.collector.entity.SimpleItem
 import com.tingfeng.ershou.collector.service.CollectorService
+import com.tingfeng.ershou.collector.util.ChromeDriverUtil
 import org.openqa.selenium.By
 import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import cn.wanghaomiao.xpath.model.JXDocument
+import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
+
 
 @Service
 class CollectorServiceImpl : CollectorService {
@@ -79,19 +82,13 @@ class CollectorServiceImpl : CollectorService {
 
 
     fun getChromeDriver(): ChromeDriver {
-        //-----------------------------打开火狐浏览器------------------------------------------------
-        //WebDriver my_dr = new FirefoxDriver();// 打开火狐浏览器  原生支持的浏览器，但是不支持火狐高级的版本
-        //-----------------------------打开Chrome浏览器---------------------------------------------
-        val file_chrome = File("E:/drivers/chromedriver.exe")
-        System.setProperty("webdriver.chrome.driver", file_chrome.getAbsolutePath())
-        val chromeOptions = ChromeOptions()
-//        设置为 headless 模式 （必须）
-        chromeOptions.addArguments("--headless")
-        chromeOptions.addArguments("--disable-gpu")
-//        设置浏览器窗口打开大小  （非必须）
-        chromeOptions.addArguments("--window-size=1920,1080")
-        val my_dr = ChromeDriver(chromeOptions)// 打开chrome浏览器
-        return my_dr
+        return ChromeDriverUtil.getChromeDriver(false)
+    }
+
+    fun closeChromeDriver(driver:ChromeDriver?){
+        if(null != driver){
+            ChromeDriverUtil.closeChromeDriver(driver)
+        }
     }
 
     fun getCitys():List<Pair<String,String>>{
@@ -106,14 +103,17 @@ class CollectorServiceImpl : CollectorService {
 
             var xpathAllCity = "//div[@class='content-cities']/a";
             //Thread.sleep(2000)//等待数据加载
-            my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
-            //获取省会
-            val elements = my_dr.findElements(By.xpath(xpathAllCity))
-            val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
-            my_dr?.quit()
+            my_dr.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS) //显示等待数据加载
+            val htmlContent =   my_dr.findElement(By.xpath("/html[1]")).getAttribute("outerHTML")
+            val elements  = JXDocument(htmlContent).sel(xpathAllCity)
+            val content =  elements.map {
+                it as Element
+                Pair(it.attr("href"), it.text())
+            }
+            closeChromeDriver(my_dr)
             return content
         }catch (e:Exception){
-            my_dr?.quit()
+            closeChromeDriver(my_dr)
             throw e
         }finally {
             runingCount.decrementAndGet()
@@ -124,21 +124,24 @@ class CollectorServiceImpl : CollectorService {
     fun getHotCitys():List<Pair<String,String>>{
         if (isStop) return ArrayList<Pair<String,String>>(0)
         runingCount.incrementAndGet()
+        var my_dr =  getChromeDriver()// 打开chrome浏览器
         try {
             val indexUrl = "http://www.58.com/changecity.html";
-            var my_dr =  getChromeDriver()// 打开chrome浏览器
             my_dr.get(indexUrl)
-
             var xpathAllCity = "//div[@id='hot']/a[@class='hot-city']";
-            my_dr.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS) //显示等待数据加载
+            my_dr.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS) //显示等待数据加载
             //获取热门城市
-            val elements = my_dr.findElements(By.xpath(xpathAllCity))
-            val content =  elements.map{Pair(it.getAttribute("href"),it.text)}
-
-            my_dr.quit()
+            val htmlContent =   my_dr.findElement(By.xpath("/html[1]")).getAttribute("outerHTML")
+            val elements  = JXDocument(htmlContent).sel(xpathAllCity)
+            val content =  elements.map{
+                it as Element
+                Pair(it.attr("href"),it.text())
+            }
+            closeChromeDriver(my_dr)
             return content
 
         }catch (e:Exception){
+            closeChromeDriver(my_dr)
             throw  e
         }finally {
             runingCount.decrementAndGet()
@@ -160,29 +163,52 @@ class CollectorServiceImpl : CollectorService {
         };
     }
 
+    fun getNodeXpath(element: Element,xpath:String,isTable:Boolean = true):Element?{
+        val content = if(isTable) getTableContent(element.html()) else element.html()
+        val jxDocument = JXDocument(content).sel(xpath)
+        if(jxDocument.size <= 0) return null
+        return jxDocument.get(0) as Element
+    }
+    fun getNodesXpath(element: Element,xpath:String,isTable:Boolean = true): List<Element> {
+        val content = if(isTable) getTableContent(element.html()) else element.html()
+        val jxDocument = JXDocument(content).sel(xpath)
+        return jxDocument as List<Element>
+    }
+
+    fun getTableContent(element: Element):String{
+        return getTableContent( element.html());
+    }
+
+    fun getTableContent(content:String):String{
+        return "<table>"+ content + "<table/>";
+    }
 
     fun getSimpleItemData(maxWait:Long = 15,url:String):List<SimpleItem>{
         if (isStop) return ArrayList<SimpleItem>(0)
             runingCount.incrementAndGet()
+        var content = StringBuffer(5000)
+        var my_dr =  getChromeDriver()// 打开chrome浏览器
         try {
-            var content = StringBuffer(5000)
-            var my_dr =  getChromeDriver()// 打开chrome浏览器
             my_dr.get(url)
             my_dr.manage().timeouts().implicitlyWait(maxWait, TimeUnit.SECONDS) //显式等待数据加载
+
+            val htmlContent =   my_dr.findElement(By.xpath("/html[1]")).getAttribute("outerHTML")
             //得到当前页面的item信息
             var xpathAllCity = "//div[@class='infocon']/table[@class='tbimg']//tr";//获取所有的item行
-            val elements = my_dr.findElements(By.xpath(xpathAllCity))
+            val jxDocument = JXDocument(htmlContent)
+            val elements = jxDocument.sel(xpathAllCity)
             val items = elements.map {
                 try{
+                    it as Element
                     val item = SimpleItem()
-                    item.icon = it.findElement(By.xpath("./td[@class='img']/a/img"))?.getAttribute("src")
-                    val show = it.findElement(By.xpath("./td[@class='t']"))
+                    item.icon = getNodeXpath(it,"//td[@class='img']/a/img")?.attr("src")
+                    val show = "//td[@class='t']"
 
-                    item.url = show.findElement(By.xpath("./a[@class='t']"))?.getAttribute("href")
-                    item.title = show.findElement(By.xpath("./a[@class='t']"))?.text
+                    var node = getNodeXpath(it,show + "/a[@class='t']")
+                    item.url = node?.attr("href")
+                    item.title = node?.text()
 
-                    val price = show.findElement(By.xpath("./span[@class='pricebiao']/span[@class='price']"))?.text
-
+                    val price = getNodeXpath(it,show + "/span[@class='pricebiao']/span[@class='price']")?.text()
                     if(price == null)
                     {
                         item.price = -1
@@ -196,31 +222,31 @@ class CollectorServiceImpl : CollectorService {
                             e.printStackTrace()
                         }
                     }
-                    item.content = show.findElement(By.xpath("./span[@class='desc']"))?.text
+                    item.content = getNodeXpath(it,show + "/span[@class='desc']")?.text()
                     try {
-                        item.city = show.findElement(By.xpath("./span[@class='fl']"))?.text
+                        item.city = getNodeXpath(it,show + "/span[@class='fl']")?.text()
                     }catch (e:Exception){
                         e.printStackTrace()
                     }
-                    val tc = it.findElement(By.xpath("./td[@class='tc']"))
-                    val sellerInfo = tc.findElements(By.xpath(".//p[@class='name_add']"))
+                    val tc = "//td[@class='tc']"
+                    val sellerInfo = getNodesXpath(it,tc + "//p[@class='name_add']")
                     try {
                         if(sellerInfo.size > 0){
-                            item.saler = sellerInfo.get(0).text
+                            item.saler = sellerInfo.get(0).text()
                         }
                     }catch (e:Exception){
                         e.printStackTrace()
                     }
                     try {
                         if(sellerInfo.size > 1){
-                            item.source = sellerInfo.get(1).text
+                            item.source = sellerInfo.get(1).text()
                         }
 
                     }catch (e:Exception){
                         e.printStackTrace()
                     }
                     try {
-                        val check = tc.findElements(By.xpath(".//p[@class='zhijian']"))
+                        val check = getNodesXpath(it,tc + "//p[@class='zhijian']")
                         if(check.size > 0){
                             item.canCheck  = 1
                         }else{
@@ -229,7 +255,6 @@ class CollectorServiceImpl : CollectorService {
                     }catch (e:Exception){
                         item.canCheck = 0
                     }
-
                     if(null != item.url)
                         item.id = item.getUUID()
 
@@ -240,10 +265,11 @@ class CollectorServiceImpl : CollectorService {
                     SimpleItem()
                 }
             }.filter{ it.id != null }
-            my_dr.quit()
+            closeChromeDriver(my_dr)
             println(content)
             return items
         }catch (e:Exception){
+            closeChromeDriver(my_dr)
             throw e
         }finally {
             runingCount.decrementAndGet()
@@ -257,6 +283,7 @@ class CollectorServiceImpl : CollectorService {
             var size = 1
             if(threadSize < 1) size = 1
             if(threadSize > 15) size = 15
+            ChromeDriverUtil.maxSize = threadSize
             if(!isRun && runingCount.get() <= 0){
                 threadPool = Executors.newFixedThreadPool(threadSize)
                 isRun = true
@@ -320,8 +347,7 @@ class CollectorServiceImpl : CollectorService {
                 println("\nin city:$city,save data:$dataCount,useTime:$useTime\n")
             }catch (e:Exception)
             {
-                throw  e
-                
+                e.printStackTrace()
             }finally {
                 runingCount.decrementAndGet()
             }
@@ -336,11 +362,10 @@ class CollectorServiceImpl : CollectorService {
             try {
                 var citys = getCitys()
                 saveToDb(citys)
-
                 citys = getHotCitys()
                 saveToDb(citys,true)
             }catch (e:Exception){
-                throw  e
+                e.printStackTrace()
             }finally {
                 runingCount.decrementAndGet()
             }

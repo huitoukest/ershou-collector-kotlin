@@ -1,7 +1,7 @@
 var app = new Vue({
   el: '#main',
   data: {
-    citys:[{name:'全部',value:'0'},{name:'热门城市',value:'1'}],
+    citys:[{name:'全部',value:''},{name:'热门和省会城市',value:'3'},{name:'2线城市',value:'2'},{name:'3线城市',value:'1'},{name:'其它',value:'0'}],
     threadSizes:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
     collector:{
         title:'',
@@ -49,16 +49,18 @@ var app = new Vue({
     getStatus: function(){
         $.ajax({
               type:'get',
+              timeout : 4000, //超时时间设置，单位毫秒
               dataType:'json',
               url:"/ershou/collector/getStatus",
               data:app.collector,
               success:function(json){
                 app.status = json;
+              },
+              complete:function(XMLHttpRequest,status){ //请求完成后最终执行参数
+                setTimeout("app.getStatus()",5000);
               }
           });
-       setTimeout("app.getStatus()",5000);
     }
-
   }
 });
 

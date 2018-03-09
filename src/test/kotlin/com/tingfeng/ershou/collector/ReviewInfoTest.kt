@@ -49,32 +49,40 @@ class ReviewInfoTest {
     fun stopChromDriverService():Unit{
         chromeService.stop()
     }
-
-
     @Test
-    fun getAccountsTest() {
+    fun getAccountsTests(){
         var chromDriver = getChromDriver()
         try {
-            val storyName = "圣墟";
-            val filePrefix = storyName;
-            var zhihuUrls = getZhihuUrls(chromDriver,"如何评价$storyName site:zhihu.com", storyName)
-            val reviewInfos = ArrayList<String>(200)
-            zhihuUrls.forEach {
-                reviewInfos.addAll(getZhihuReviewInfo(chromDriver,it))
-            }
-            val file = File("/home/tmp/", filePrefix + "_reviewInfo.txt")
-            if (!file.exists()) {
-                file.createNewFile()
-            }
-            reviewInfos.forEach {
-                file.appendText(it, Charset.forName("UTF-8"))
-                file.appendText("\n")
-            }
-        }catch (e : Exception){
-            e.printStackTrace()
+            val storyList = listOf<String>("遮天","吞噬星空","斗罗大陆",
+                    "英雄志","三体","紫川","新宋","圣墟","放开那个女巫",
+                    "卡图","人道至尊","龙蛇演义","奥术神座")
+            getAccountsTest(chromDriver,storyList);
         }finally {
             closeChromDriver(chromDriver);
             stopChromDriverService()
+        }
+    }
+
+    fun getAccountsTest (chromDriver : ChromeDriver,sotryNames :List<String>) {
+
+        sotryNames.forEach{
+           try {
+               var zhihuUrls = getZhihuUrls(chromDriver, "如何评价$it site:zhihu.com", it)
+               val reviewInfos = ArrayList<String>(200)
+               zhihuUrls.forEach {
+                   reviewInfos.addAll(getZhihuReviewInfo(chromDriver, it))
+               }
+               val file = File("/home/tmp/", it + "_reviewInfo.txt")
+               if (!file.exists()) {
+                   file.createNewFile()
+               }
+               reviewInfos.forEach {
+                   file.appendText(it, Charset.forName("UTF-8"))
+                   file.appendText("\n")
+               }
+           }catch (e : Exception){
+               e.printStackTrace()
+           }
         }
     }
 

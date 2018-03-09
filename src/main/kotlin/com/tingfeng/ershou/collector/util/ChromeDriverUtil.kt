@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * 模拟一个ChromDriver的线程池，最多50个线程
  */
 object ChromeDriverUtil {
-    public var maxSize = 10
+    public var maxSize = 1
     private val runingCount = AtomicInteger (0)
     private val pool = ArrayList<ChromeDriverInfo>(25)//当的ChromDriver
     private val removeEletemts = ArrayList<ChromeDriverInfo>(25)
@@ -25,7 +25,7 @@ object ChromeDriverUtil {
                        for (driver in pool) {
                            try {
                                val useTime = System.currentTimeMillis() - driver.updateTime
-                               if ((useTime > 15000 && driver.isUse == false) || useTime > 60000) {//60秒钟没有使用，或者10秒闲置则停止
+                               if ((useTime > 30000 && driver.isUse == false) || useTime > 60000) {//60秒钟没有使用，或者10秒闲置则停止
                                    removeEletemts.add(driver)
                                }
                            } catch (e: Exception) {

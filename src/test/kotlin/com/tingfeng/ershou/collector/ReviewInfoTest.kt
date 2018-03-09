@@ -21,18 +21,14 @@ class ReviewInfoTest {
 
     companion object {
         val file_chrome = File("E:/drivers/chromedriver.exe")
+        val storyTitleNotContains = listOf<String>("动漫","动画","漫画","游戏","手游","网游","电视剧","电影","视频","配音")
         var  chromeService :ChromeDriverService  ;
         init {
             System.setProperty("webdriver.chrome.driver", file_chrome.getAbsolutePath())
             val builder =  ChromeDriverService.Builder();
             chromeService = builder.usingDriverExecutable(file_chrome).usingPort(3333).build();
             chromeService.start();
-
         }
-
-
-
-
     }
 
     fun getChromDriver():ChromeDriver{
@@ -53,9 +49,13 @@ class ReviewInfoTest {
     fun getAccountsTests(){
         var chromDriver = getChromDriver()
         try {
-            val storyList = listOf<String>("遮天","吞噬星空","斗罗大陆",
+            /*val storyList = listOf<String>("遮天","吞噬星空","斗罗大陆",
                     "英雄志","三体","紫川","新宋","圣墟","放开那个女巫",
-                    "卡图","人道至尊","龙蛇演义","奥术神座")
+                    "卡徒","人道至尊","龙蛇演义","奥术神座",
+                    "完美世界","武动乾坤","莽荒纪","飞升之后")*/
+            val storyList = listOf<String>("天龙八部","我欲封天","绝世武神",
+                    "永夜君王","灵域","诛仙","从前有座灵剑山","盘龙","龙族",
+                    "星战风暴","宝鉴","天珠变","全职高手")
             getAccountsTest(chromDriver,storyList);
         }finally {
             closeChromDriver(chromDriver);
@@ -116,9 +116,18 @@ class ReviewInfoTest {
                                 var re : String? = null
                                 val title = JsoupXpathUtil.getNodeXpath(it,"//h3[@class='t']/a")?.text()
                                 if(title != null && title.contains(key)){
-                                    val href = JsoupXpathUtil.getNodeXpath(it,"//div[@class='f13']/a[1]")!!
-                                    if(href.text().contains("zhihu")) {
-                                        re =   href.attr("href")
+                                    var isOk = true
+                                    storyTitleNotContains.forEach {
+                                        if(isOk && title.contains(it))
+                                        {
+                                            isOk = false
+                                        }
+                                    }
+                                    if(isOk) {
+                                        val href = JsoupXpathUtil.getNodeXpath(it, "//div[@class='f13']/a[1]")!!
+                                        if (href.text().contains("zhihu")) {
+                                            re = href.attr("href")
+                                        }
                                     }
                                 }
                                     re

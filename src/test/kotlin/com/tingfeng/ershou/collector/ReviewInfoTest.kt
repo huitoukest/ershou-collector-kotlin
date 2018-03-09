@@ -5,6 +5,7 @@ import com.tingfeng.ershou.collector.util.JsoupXpathUtil
 import org.jsoup.nodes.Element
 import org.junit.Test
 import org.openqa.selenium.By
+import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeDriverService
 import java.io.File
@@ -53,9 +54,10 @@ class ReviewInfoTest {
                     "英雄志","三体","紫川","新宋","圣墟","放开那个女巫",
                     "卡徒","人道至尊","龙蛇演义","奥术神座",
                     "完美世界","武动乾坤","莽荒纪","飞升之后")*/
-            val storyList = listOf<String>("天龙八部","我欲封天","绝世武神",
-                    "永夜君王","灵域","诛仙","从前有座灵剑山","盘龙","龙族",
-                    "星战风暴","宝鉴","天珠变","全职高手")
+            /*val storyList = listOf<String>("如何评价天龙八部","如何评价我欲封天","如何评价绝世武神",
+                    "如何评价永夜君王","如何评价灵域","如何评价诛仙","如何评价从前有座灵剑山","如何评价盘龙","如何评价龙族",
+                    "如何评价星战风暴","如何评价宝鉴","如何评价天珠变","如何评价全职高手")*/
+            val storyList = listOf<String>("拍案叫绝的智障桥段");
             getAccountsTest(chromDriver,storyList);
         }finally {
             closeChromDriver(chromDriver);
@@ -67,7 +69,7 @@ class ReviewInfoTest {
 
         sotryNames.forEach{
            try {
-               var zhihuUrls = getZhihuUrls(chromDriver, "如何评价$it site:zhihu.com", it)
+               var zhihuUrls = getZhihuUrls(chromDriver, "$it site:zhihu.com", it)
                val reviewInfos = ArrayList<String>(200)
                zhihuUrls.forEach {
                    reviewInfos.addAll(getZhihuReviewInfo(chromDriver, it))
@@ -92,7 +94,7 @@ class ReviewInfoTest {
         chromDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS) //显示等待数据加载
         //定位到百度的输入框
         val element = chromDriver.findElement(By.id("kw")).sendKeys(title)
-        Thread.sleep(1000)
+        Thread.sleep(2000)
 
         //点击搜索
         chromDriver.findElement(By.id("su")).click()
@@ -100,9 +102,10 @@ class ReviewInfoTest {
         //点击一月内 By.cssSelector("search_tool_tf")
         val times = chromDriver.findElements(By.xpath("//span[contains(@class,'search_tool_tf')]"))
         times[0].click()
+        Thread.sleep((Math.random() * 2000).toLong())
         val timeMenus = chromDriver.findElements(By.xpath("//div[@class='c-tip-menu c-tip-timerfilter']/ul/li/a"))
         timeMenus.filter { it-> it.text == "一年内"}[0].click()
-
+        Thread.sleep((Math.random() * 3000).toLong())
         //outerHTML innerHTML
         val content = chromDriver.findElement(By.xpath("//div[@id='container']")).getAttribute("innerHTML")
 
@@ -143,8 +146,26 @@ class ReviewInfoTest {
 
     fun  getZhihuReviewInfo(chromDriver : ChromeDriver,zhihuUrl :String ):List<String>{
         chromDriver.get(zhihuUrl);
-        chromDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS) //显示等待数据加载
+        chromDriver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS) //显示等待数据加载
         Thread.sleep((Math.random() * 10000).toLong());
+        //查看所有回答
+        val allQues = chromDriver.findElement(By.xpath("//a[@class='QuestionMainAction']"));
+        if(allQues != null){
+            val content = allQues.text
+            try {
+                allQues.click();
+                val count = content.replace(Regex("[^\\d]"),"").toLong()
+                var sleepTime:Long  = count
+                if(count < 500){
+                    sleepTime = 500
+                }else if(count > 2000){
+                    sleepTime = 3000
+                }
+                Thread.sleep(sleepTime)
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
          //outerHTML innerHTML
         val content = chromDriver.findElement(By.xpath("//body")).getAttribute("innerHTML")
         val jsoupContent = JXDocument(content)

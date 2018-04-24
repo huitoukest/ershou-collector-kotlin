@@ -22,7 +22,7 @@ class ReviewInfoTest {
 
     companion object {
         val file_chrome = File("E:/drivers/chromedriver.exe")
-        val storyTitleNotContains = listOf<String>("动漫","动画","漫画","游戏","手游","网游","电视剧","电影","视频","配音")
+        val storyTitleNotContains = listOf<String>("动漫","动画","漫画","游戏","手游","网络游戏","电视剧","电影","视频","配音")
         var  chromeService :ChromeDriverService  ;
         init {
             System.setProperty("webdriver.chrome.driver", file_chrome.getAbsolutePath())
